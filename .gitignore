@@ -1,0 +1,17 @@
+.DS_Store
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Local virtual environments
+pymupdf-venv/
+.venv/
+venv/
+
+# Editor swap files
+*.swp
+
+phase-1-exams/**/*.pdf
+data/processed/*.csv
