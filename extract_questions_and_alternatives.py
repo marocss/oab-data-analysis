@@ -20,6 +20,13 @@ VALIDATION_CSV = PROCESSED_DIR / "validation_report.csv"
 EXAM_DIR_RE = re.compile(r"^(?P<exam>\d+)-exam$")
 QUESTION_MARKER_RE = re.compile(r"(?m)^[ \t]*(?P<number>[1-9]|[1-7][0-9]|80)[ \t]*$")
 ALT_MARKER_RE = re.compile(r"(?m)^[ \t]*\(?([ABCD])\)[ \t]*")
+PAGE_FOOTER_RE = re.compile(
+    r"^\s*(?:\uf020\s*)?"
+    r"TIPO(?:\s+[1-4])?\s*[–-]?\s*"
+    r"(?:BRANCA|VERDE|AMARELA|AZUL)\s*"
+    r"(?:[–-]\s*)?P[ÁA]GINA(?:\s+\d+)?\s*$",
+    re.IGNORECASE,
+)
 
 
 @dataclass(frozen=True)
@@ -125,13 +132,15 @@ def is_header_line(line: str) -> bool:
     upper = stripped.upper()
     if not stripped:
         return False
+    if stripped == "\uf020":
+        return True
     if "EXAME" in upper and "ORDEM UNIFICADO" in upper and "TIPO" in upper:
         return True
     if "EXAME" in upper and "ORDEM UNIFICADO" in upper and len(stripped) < 80:
         return True
     if upper.startswith("PROVA APLICADA EM "):
         return True
-    if re.fullmatch(r"TIPO\s+1\s*[–-].*P[ÁA]GINA\s+\d+", upper):
+    if PAGE_FOOTER_RE.fullmatch(line):
         return True
     return False
 

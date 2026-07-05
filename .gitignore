@@ -14,4 +14,6 @@ venv/
 *.swp
 
 phase-1-exams/**/*.pdf
+phase-1-editais/*.pdf
 data/processed/*.csv
+sources/*.pdf

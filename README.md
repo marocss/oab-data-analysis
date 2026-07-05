@@ -2,7 +2,7 @@
 
 A data-driven map of what the OAB 1st phase exam actually tests.
 
-The long-term goal is to analyze recent OAB 1st phase exams and show which subjects, topics, laws, concepts, and question styles appear most often. The current milestone is intentionally narrower: extract the 80 objective questions, extract the TIPO 1 answer keys, and create a non-annulled combined raw CSV.
+The long-term goal is to analyze recent OAB 1st phase exams and show which subjects, topics, laws, concepts, and question styles appear most often. The current milestone is intentionally narrower: extract the 80 objective questions, extract the TIPO 1 answer keys, create a non-annulled combined raw CSV, and build an exam-level discipline scope table from official sources.
 
 ## Current Milestone
 
@@ -40,8 +40,19 @@ Implemented in `merge_questions_and_answers.py`:
 - writes a combined raw CSV with question text, alternatives, answer, and source PDF provenance
 - validates the merge before reporting success
 
+Implemented in `extract_exam_disciplines.py`:
+
+- reads local edital PDFs from `phase-1-editais/`
+- reads official source PDFs from `sources/`
+- builds a canonical discipline catalog from CNE/OAB reference PDFs
+- detects each edital's first-phase discipline scope
+- records source basis, edital provenance, source PDF provenance, and question-count hints where available
+- writes an exam-level discipline CSV and a validation report
+- validates exams 37 through 46 before reporting success
+
 Not implemented yet:
 
+- per-question discipline labels
 - subject/topic labels
 - legal citation extraction
 - OCR or image processing
@@ -63,9 +74,18 @@ phase-1-exams/
   46-exam/
     <original random filename>.pdf
     <original random filename>.pdf
+
+phase-1-editais/
+  <official edital PDF for each exam 37 through 46>.pdf
+
+sources/
+  Provimento n. 144.2011.pdf
+  rces005_18.pdf
+  rces002_21.pdf
+  exame-de-ordem-em-numeros-IV.pdf
 ```
 
-Each exam folder currently contains two PDFs: the prova and the answer key. Question extraction and answer extraction are intentionally separate scripts and outputs.
+Each exam folder currently contains two PDFs: the prova and the answer key. Question extraction, answer extraction, and discipline-scope extraction are intentionally separate scripts and outputs.
 
 Generated output layout:
 
@@ -78,6 +98,8 @@ data/
     answers_validation_report.csv
     questions_and_answers_raw.csv
     questions_and_answers_validation_report.csv
+    exam_disciplines.csv
+    exam_disciplines_validation_report.csv
   debug/
     exam_<number>_extracted_text.txt
     exam_<number>_answers_extracted_text.txt
@@ -148,6 +170,20 @@ Expected successful output:
 Wrote 788 rows to data/processed/questions_and_answers_raw.csv
 Wrote validation report to data/processed/questions_and_answers_validation_report.csv
 Merged questions and answers validated.
+```
+
+Run the exam-discipline extractor:
+
+```bash
+pymupdf-venv/bin/python extract_exam_disciplines.py
+```
+
+Expected successful output:
+
+```text
+Wrote 277 rows to data/processed/exam_disciplines.csv
+Wrote validation report to data/processed/exam_disciplines_validation_report.csv
+Exam disciplines validated.
 ```
 
 ## Outputs
@@ -240,6 +276,33 @@ Columns:
 - `parse_ok`
 - `notes`
 
+`data/processed/exam_disciplines.csv` contains one row per exam-level discipline included in each edital's first-phase scope.
+
+Columns:
+
+- `exam`
+- `discipline`
+- `category`
+- `question_count_hint`
+- `source_basis`
+- `edital_source_pdf`
+- `discipline_source_pdfs`
+- `parse_ok`
+
+This file defines the allowed discipline universe for an exam. It does not assign a discipline to each individual question.
+
+`data/processed/exam_disciplines_validation_report.csv` contains one row per edital.
+
+Columns:
+
+- `exam`
+- `discipline_count`
+- `edital_area_found`
+- `missing_source_matches`
+- `duplicate_disciplines`
+- `parse_ok`
+- `notes`
+
 ## Validation Rules
 
 For each prova PDF, question validation requires:
@@ -277,13 +340,25 @@ For the merge step, validation requires:
 - no merged row has `answer == "*"`
 - all input rows have `parse_ok=True`
 
+For the exam-discipline extractor, validation requires:
+
+- local source PDFs exist under `sources/`
+- local edital PDFs exist under `phase-1-editais/`
+- the edital set is exactly exams 37 through 46
+- each edital's first-phase area text is found
+- at least one discipline is extracted for each edital
+- no duplicate disciplines are emitted for an exam
+- every emitted discipline has source PDF provenance
+- disciplines with Exame de Ordem em Numeros question-count hints retain those hints
+
 ## Future Work
 
 Planned later steps:
 
-1. Add subject and topic labels.
-2. Detect cited laws and articles.
-3. Build frequency and trend charts.
+1. Add per-question discipline labels.
+2. Add subject and topic labels.
+3. Detect cited laws and articles.
+4. Build frequency and trend charts.
 
 Example future analyses:
 
@@ -296,3 +371,10 @@ Example future analyses:
 ## Reference
 
 - https://examedeordem.oab.org.br/EditaisProvas?NumeroExame=0
+- https://s.oab.org.br/arquivos/2023/01/cb53a6a9-0785-4323-9346-bb06377b8133.pdf
+- https://examedeordem.oab.org.br/pdf/Provimento%20n.%20144.2011.pdf
+- https://examedeordem.oab.org.br/pdf/Provimento%20n.%20156.2013.pdf
+- https://examedeordem.oab.org.br/pdf/Provimento%20n.%20212.2022.pdf
+- https://www.gov.br/mec/pt-br/cne/normas-classificadas-por-assunto/diretrizes-curriculares-cursos-de-graduacao
+- https://examedeordem.oab.org.br/pdf/exame-de-ordem-em-numeros-IV.pdf
+- https://www.planalto.gov.br/ccivil_03/
