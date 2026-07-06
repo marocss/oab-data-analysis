@@ -112,12 +112,16 @@ class ParagraphExtractor(HTMLParser):
     def flush_current(self) -> None:
         if self.current_attrs is None:
             return
-        text = clean_block_text("".join(self.current_parts))
+        align = self.current_attrs.get("align", "").lower()
+        if align == "center":
+            text = clean_centered_heading_text(self.current_parts)
+        else:
+            text = clean_block_text("".join(self.current_parts))
         if text:
             self.paragraphs.append(
                 Paragraph(
                     text=text,
-                    align=self.current_attrs.get("align", "").lower(),
+                    align=align,
                 )
             )
         self.current_attrs = None
@@ -152,6 +156,22 @@ def clean_block_text(text: str) -> str:
     text = re.sub(rf"\s*{ORDINAL_SUP_TAG}\s*", "º ", text)
     text = re.sub(r"[ \t\f\v\n]+", " ", text)
     return text.strip()
+
+
+def should_join_centered_heading_chunks(previous: str, current: str) -> bool:
+    return bool(previous and current and previous[-1].isalpha() and current[0].islower())
+
+
+def clean_centered_heading_text(parts: list[str]) -> str:
+    chunks = [part.strip() for part in parts if part.strip()]
+    if not chunks:
+        return ""
+
+    text = chunks[0]
+    for chunk in chunks[1:]:
+        separator = "" if should_join_centered_heading_chunks(text, chunk) else " "
+        text += separator + chunk
+    return clean_block_text(text)
 
 
 def fold_for_match(text: str) -> str:
