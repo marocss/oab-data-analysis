@@ -15,6 +15,7 @@ DEFAULT_MANIFEST = SOURCES_DIR / "discipline_corpus_manifest.csv"
 DEFAULT_LCP95_HTML = ROOT / "sources" / "raw" / "Lcp95.html"
 
 SKIP_TAGS = {"head", "script", "style", "noscript"}
+DELETED_TEXT_TAGS = {"strike", "del"}
 TEXT_BLOCK_TAGS = {"p", "h1", "h2", "h3", "h4", "h5", "h6"}
 ORDINAL_SUP_TAG = "__SUP_ORDINAL__"
 HIERARCHY_MARKER_RE = re.compile(
@@ -52,6 +53,7 @@ class ParagraphExtractor(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
         self.skip_depth = 0
+        self.deleted_depth = 0
         self.sup_depth = 0
         self.current_attrs: dict[str, str] | None = None
         self.current_parts: list[str] = []
@@ -63,6 +65,11 @@ class ParagraphExtractor(HTMLParser):
             self.skip_depth += 1
             return
         if self.skip_depth:
+            return
+        if tag in DELETED_TEXT_TAGS:
+            self.deleted_depth += 1
+            return
+        if self.deleted_depth:
             return
         if tag in TEXT_BLOCK_TAGS:
             self.flush_current()
@@ -80,13 +87,18 @@ class ParagraphExtractor(HTMLParser):
             return
         if self.skip_depth:
             return
+        if tag in DELETED_TEXT_TAGS and self.deleted_depth:
+            self.deleted_depth -= 1
+            return
+        if self.deleted_depth:
+            return
         if tag in TEXT_BLOCK_TAGS:
             self.flush_current()
         elif tag == "sup" and self.sup_depth:
             self.sup_depth -= 1
 
     def handle_data(self, data: str) -> None:
-        if self.skip_depth or self.current_attrs is None:
+        if self.skip_depth or self.deleted_depth or self.current_attrs is None:
             return
         if self.sup_depth and data.strip() in {"o", "º", "°"}:
             self.current_parts.append(ORDINAL_SUP_TAG)
