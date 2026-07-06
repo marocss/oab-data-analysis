@@ -50,6 +50,16 @@ Implemented in `extract_exam_disciplines.py`:
 - writes an exam-level discipline CSV and a validation report
 - validates exams 37 through 46 before reporting success
 
+Implemented in `extract_disciplines_corpus_text.py` and `clean_disciplines_corpus_text.py`:
+
+- reads Planalto HTML rows from `sources/discipline_corpus_manifest.csv`
+- extracts raw canonical text blocks to each row's `local_path_text_raw`
+- cleans raw text into classification-oriented text at each row's `local_path_text`
+- keeps raw extraction and classification cleanup as separate steps
+- uses LCP 95 as the reference for legal text structure
+- skips rows whose raw text does not exist yet, such as PDF-backed OAB sources
+- PDF source extraction still needs to be implemented
+
 Not implemented yet:
 
 - per-question discipline labels
@@ -83,6 +93,15 @@ sources/
   rces005_18.pdf
   rces002_21.pdf
   exame-de-ordem-em-numeros-IV.pdf
+  discipline_corpus_manifest.csv
+  taxonomy_sources.csv
+  raw/
+    <manifest source files>.html
+    <manifest source files>.pdf
+  text_raw/
+    <raw extracted Planalto text>.txt
+  text/
+    <cleaned classification text>.txt
 ```
 
 Each exam folder currently contains two PDFs: the prova and the answer key. Question extraction, answer extraction, and discipline-scope extraction are intentionally separate scripts and outputs.
@@ -184,6 +203,18 @@ Expected successful output:
 Wrote 277 rows to data/processed/exam_disciplines.csv
 Wrote validation report to data/processed/exam_disciplines_validation_report.csv
 Exam disciplines validated.
+```
+
+Run the raw Planalto text extractor:
+
+```bash
+python3 extract_disciplines_corpus_text.py --manifest --overwrite
+```
+
+Then run the classification text cleaner:
+
+```bash
+python3 clean_disciplines_corpus_text.py --overwrite
 ```
 
 ## Outputs
@@ -303,6 +334,18 @@ Columns:
 - `parse_ok`
 - `notes`
 
+`sources/text_raw/*.txt` contains raw canonical text extracted from Planalto HTML sources.
+
+`sources/text/*.txt` contains cleaned classification-oriented text derived from `sources/text_raw/*.txt`.
+
+The source extractor is manifest-driven. For each row, it reads:
+
+- `local_path_raw`
+- `local_path_text_raw`
+- `local_path_text`
+
+Rows with missing raw text are reported and skipped by the cleaner. PDF-backed rows remain in the manifest, but are out of scope until raw text exists for them.
+
 ## Validation Rules
 
 For each prova PDF, question validation requires:
@@ -378,3 +421,4 @@ Example future analyses:
 - https://www.gov.br/mec/pt-br/cne/normas-classificadas-por-assunto/diretrizes-curriculares-cursos-de-graduacao
 - https://examedeordem.oab.org.br/pdf/exame-de-ordem-em-numeros-IV.pdf
 - https://www.planalto.gov.br/ccivil_03/
+- https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp95.htm

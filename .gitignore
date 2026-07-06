@@ -15,5 +15,16 @@ venv/
 
 phase-1-exams/**/*.pdf
 phase-1-editais/*.pdf
+
 data/processed/*.csv
+data/config/*.txt
+!data/config/legal_stopwords.txt
+data/signals/*.csv
+
 sources/*.pdf
+sources/*.csv
+sources/raw/*.pdf
+sources/raw/*.html
+sources/text_raw/*.txt
+sources/text/*.txt
+sources/structured/*.json

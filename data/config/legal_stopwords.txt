@@ -1,0 +1,11 @@
+direito
+lei
+pessoa
+caso
+ato
+forma
+prazo
+processo
+artigo
+capitulo
+secao
