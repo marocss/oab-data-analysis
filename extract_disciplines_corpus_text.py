@@ -22,11 +22,11 @@ HIERARCHY_MARKER_RE = re.compile(
     r"^(?P<marker>"
     r"P\s*A\s*R\s*T\s*E\s+G\s*E\s*R\s*A\s*L|"
     r"PARTE\s+(?:GERAL|ESPECIAL|[A-ZÁÉÍÓÚÂÊÔÃÕÇ]+)|"
-    r"LIVRO\s+(?:[IVXLCDM]+|ÚNICO|UNICO)|"
-    r"T[ÍI]TULO\s+(?:[IVXLCDM]+|ÚNICO|UNICO)|"
-    r"CAP[ÍI]TULO\s+(?:[IVXLCDM]+|ÚNICO|UNICO)|"
-    r"SUBSE[ÇC][ÃA]O\s+(?:[IVXLCDM]+|ÚNICA|UNICA)|"
-    r"SE[ÇC][ÃA]O\s+(?:[IVXLCDM]+|ÚNICA|UNICA)"
+    r"LIVRO\s+(?:[IVXLCDM]+(?:-[A-Z])?|ÚNICO|UNICO)|"
+    r"T[ÍI]TULO\s+(?:[IVXLCDM]+(?:-[A-Z])?|ÚNICO|UNICO)|"
+    r"CAP[ÍI]TULO\s+(?:[IVXLCDM]+(?:-[A-Z])?|ÚNICO|UNICO)|"
+    r"SUBSE[ÇC][ÃA]O\s+(?:[IVXLCDM]+(?:-[A-Z])?|ÚNICA|UNICA)|"
+    r"SE[ÇC][ÃA]O\s+(?:[IVXLCDM]+(?:-[A-Z])?|ÚNICA|UNICA)"
     r")\b(?P<title>.*)$",
     re.IGNORECASE,
 )

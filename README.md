@@ -60,6 +60,15 @@ Implemented in `extract_disciplines_corpus_text.py` and `clean_disciplines_corpu
 - skips rows whose raw text does not exist yet, such as PDF-backed OAB sources
 - PDF source extraction still needs to be implemented
 
+Implemented in `extract_signals_candidates_disciplines.py`:
+
+- reads cleaned discipline corpus text from `sources/discipline_corpus_manifest.csv`
+- extracts candidate discipline signals from source titles, aliases, legal headings, article rubrics, definitions, enumerated terms, and repeated heading topic phrases
+- records source, discipline, hierarchy, article, and provenance metadata for each candidate
+- computes cross-source and cross-discipline counts by normalized candidate form
+- flags ambiguous candidates and emits specificity scores for later classification review
+- writes a reviewable signal candidate CSV under `data/signals/`
+
 Not implemented yet:
 
 - per-question discipline labels
@@ -119,6 +128,8 @@ data/
     questions_and_answers_validation_report.csv
     exam_disciplines.csv
     exam_disciplines_validation_report.csv
+  signals/
+    signal_candidates_disciplines.csv
   debug/
     exam_<number>_extracted_text.txt
     exam_<number>_answers_extracted_text.txt
@@ -216,6 +227,14 @@ Then run the classification text cleaner:
 ```bash
 python3 clean_disciplines_corpus_text.py --overwrite
 ```
+
+Run the discipline signal candidate extractor:
+
+```bash
+python3 extract_signals_candidates_disciplines.py
+```
+
+Expected successful output reports the number of manifest sources read, the number of cleaned text sources processed, any missing cleaned text files, and the number of signal candidates written to `data/signals/signal_candidates_disciplines.csv`.
 
 ## Outputs
 
@@ -346,6 +365,32 @@ The source extractor is manifest-driven. For each row, it reads:
 
 Rows with missing raw text are reported and skipped by the cleaner. PDF-backed rows remain in the manifest, but are out of scope until raw text exists for them.
 
+`data/signals/signal_candidates_disciplines.csv` contains one row per extracted discipline signal candidate.
+
+Columns:
+
+- `signal_id`
+- `signal_type`
+- `candidate`
+- `candidate_normalized`
+- `source_id`
+- `source_title`
+- `source_type`
+- `discipline_id`
+- `candidate_disciplines`
+- `provenance_kind`
+- `provenance_ref`
+- `hierarchy_path`
+- `article_number`
+- `frequency`
+- `source_count`
+- `discipline_count`
+- `specificity_score`
+- `is_ambiguous`
+- `quality_notes`
+
+`signal_type` identifies the extraction rule that produced the candidate, such as `source_title`, `source_alias`, `heading_title`, `heading_topic_phrase`, `article_rubric`, `defined_term`, or `enumerated_term`. The signal candidate file is a review input for later classification work. It does not assign disciplines to exam questions.
+
 ## Validation Rules
 
 For each prova PDF, question validation requires:
@@ -394,6 +439,14 @@ For the exam-discipline extractor, validation requires:
 - every emitted discipline has source PDF provenance
 - disciplines with Exame de Ordem em Numeros question-count hints retain those hints
 
+For the discipline signal candidate extractor, validation relies on focused unit tests and reviewable output invariants:
+
+- cleaned text paths are resolved from the configured `--text-dir`
+- legal hierarchy markers are not emitted as standalone heading titles
+- heading topic phrase candidates preserve source and provenance metadata
+- `source_count`, `discipline_count`, `candidate_disciplines`, ambiguity, and specificity are computed from all candidates sharing the same normalized form
+- generated heading topic phrase rows must not report `phrase_sources` greater than `source_count`
+
 ## Future Work
 
 Planned later steps:
@@ -422,3 +475,8 @@ Example future analyses:
 - https://examedeordem.oab.org.br/pdf/exame-de-ordem-em-numeros-IV.pdf
 - https://www.planalto.gov.br/ccivil_03/
 - https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp95.htm
+
+## Token Usage
+
+- 70% left of 7 day limit resets jul 9
+- 93,798 + 114,716 + 91,759 + 63,004 = 363,277k
