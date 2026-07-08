@@ -20,8 +20,8 @@ from extract_disciplines_corpus_text import (
 
 ROOT = Path(__file__).resolve().parent
 SOURCES_DIR = ROOT / "sources"
-DEFAULT_MANIFEST = SOURCES_DIR / "discipline_corpus_manifest.csv"
-DEFAULT_TEXT_DIR = SOURCES_DIR / "text"
+DEFAULT_MANIFEST = SOURCES_DIR / "manifests" / "source_documents.csv"
+DEFAULT_TEXT_DIR = SOURCES_DIR / "extractions" / "clean_text"
 DEFAULT_STOPWORDS = ROOT / "data" / "config" / "legal_stopwords.txt"
 DEFAULT_OUTPUT = ROOT / "data" / "signals" / "signal_candidates_disciplines.csv"
 
@@ -292,7 +292,10 @@ def read_manifest(path: Path) -> list[SourceMeta]:
         sources = []
         for row in rows:
             source_id = row.get("source_id", "").strip()
-            local_path_text = row.get("local_path_text", "").strip()
+            include_in_signal_corpus = row.get("include_in_signal_corpus", "").strip().lower()
+            if include_in_signal_corpus not in {"true", "1", "yes", "y"}:
+                continue
+            local_path_text = row.get("clean_text_path", "").strip()
             if not source_id:
                 continue
             sources.append(
@@ -930,6 +933,8 @@ def manifest_text_path_under_text_dir(local_path_text: str) -> Path:
     local_path = Path(local_path_text)
     if local_path.is_absolute():
         return local_path
+    if len(local_path.parts) >= 3 and local_path.parts[:2] == ("extractions", "clean_text"):
+        return Path(*local_path.parts[2:])
     if local_path.parts[:1] == (DEFAULT_TEXT_DIR.name,) and len(local_path.parts) > 1:
         return Path(*local_path.parts[1:])
     return local_path

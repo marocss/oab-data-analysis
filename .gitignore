@@ -23,8 +23,14 @@ data/signals/*.csv
 
 sources/*.pdf
 sources/*.csv
-sources/raw/*.pdf
-sources/raw/*.html
-sources/text_raw/*.txt
-sources/text/*.txt
-sources/structured/*.json
+sources/documents/*.pdf
+sources/documents/*.html
+sources/extractions/raw_text/*.txt
+sources/extractions/clean_text/*.txt
+sources/manifests/*.csv
+!sources/manifests/source_documents.csv
+
+internal-documents
+archived-internal-documents
+
+AGENTS.md

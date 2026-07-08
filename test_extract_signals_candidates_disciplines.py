@@ -23,7 +23,7 @@ def source_meta() -> SourceMeta:
         title="Lei de Teste",
         source_type="law",
         discipline_id="direito_teste",
-        local_path_text="text/test_source.txt",
+        local_path_text="extractions/clean_text/test_source.txt",
     )
 
 
@@ -33,7 +33,7 @@ def alternate_source_meta() -> SourceMeta:
         title="Lei Alternativa",
         source_type="law",
         discipline_id="direito_teste",
-        local_path_text="text/custom_alt_name.txt",
+        local_path_text="extractions/clean_text/custom_alt_name.txt",
     )
 
 
@@ -213,7 +213,7 @@ class DisciplineSignalExtractionTest(unittest.TestCase):
             title="Outra Lei",
             source_type="law",
             discipline_id="direito_outro",
-            local_path_text="text/other_source.txt",
+            local_path_text="extractions/clean_text/other_source.txt",
         )
         phrase_candidates = heading_topic_phrases(
             [

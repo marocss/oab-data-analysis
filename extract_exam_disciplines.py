@@ -13,6 +13,7 @@ import pymupdf
 ROOT = Path(__file__).resolve().parent
 EDITAIS_DIR = ROOT / "phase-1-editais"
 SOURCES_DIR = ROOT / "sources"
+DOCUMENTS_DIR = SOURCES_DIR / "documents"
 PROCESSED_DIR = ROOT / "data" / "processed"
 
 DISCIPLINES_CSV = PROCESSED_DIR / "exam_disciplines.csv"
@@ -21,10 +22,10 @@ VALIDATION_CSV = PROCESSED_DIR / "exam_disciplines_validation_report.csv"
 EXPECTED_EXAMS = set(range(37, 47))
 
 SOURCE_FILES = {
-    "provimento_144": SOURCES_DIR / "Provimento n. 144.2011.pdf",
-    "rces_2018": SOURCES_DIR / "rces005_18.pdf",
-    "rces_2021": SOURCES_DIR / "rces002_21.pdf",
-    "exame_numeros": SOURCES_DIR / "exame-de-ordem-em-numeros-IV.pdf",
+    "provimento_144": DOCUMENTS_DIR / "Provimento n. 144.2011.pdf",
+    "rces_2018": DOCUMENTS_DIR / "rces005_18.pdf",
+    "rces_2021": DOCUMENTS_DIR / "rces002_21.pdf",
+    "exame_numeros": DOCUMENTS_DIR / "exame-de-ordem-em-numeros-IV.pdf",
 }
 
 EXAM_TITLE_RE = re.compile(

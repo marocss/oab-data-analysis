@@ -11,8 +11,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 SOURCES_DIR = ROOT / "sources"
-DEFAULT_MANIFEST = SOURCES_DIR / "discipline_corpus_manifest.csv"
-DEFAULT_LCP95_HTML = ROOT / "sources" / "raw" / "Lcp95.html"
+DEFAULT_MANIFEST = SOURCES_DIR / "manifests" / "source_documents.csv"
+DEFAULT_LCP95_HTML = ROOT / "sources" / "documents" / "Lcp95.html"
 
 SKIP_TAGS = {"head", "script", "style", "noscript"}
 DELETED_TEXT_TAGS = {"strike", "del"}
@@ -293,15 +293,15 @@ def extract_manifest(args: argparse.Namespace) -> None:
 
     for row in rows:
         source_id = row.get("source_id", "").strip()
-        raw_rel = row.get("local_path_raw", "").strip()
-        text_raw_rel = row.get("local_path_text_raw", "").strip()
+        raw_rel = row.get("original_path", "").strip()
+        text_raw_rel = row.get("raw_text_path", "").strip()
 
         if not raw_rel.lower().endswith((".html", ".htm")):
             skipped_non_html += 1
             print(f"Skipped non-HTML source: {source_id or raw_rel}")
             continue
         if not text_raw_rel:
-            raise ValueError(f"{source_id or raw_rel} is missing local_path_text_raw")
+            raise ValueError(f"{source_id or raw_rel} is missing raw_text_path")
 
         input_html = SOURCES_DIR / raw_rel
         output = SOURCES_DIR / text_raw_rel
@@ -340,7 +340,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--manifest",
         type=Path,
-        help="Extract all HTML rows from a corpus manifest into local_path_text_raw.",
+        help="Extract all HTML rows from a source manifest into raw_text_path.",
     )
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--start-at", help="Optional block-text prefix where extraction should begin.")

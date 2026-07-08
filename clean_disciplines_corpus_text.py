@@ -173,12 +173,16 @@ def clean_manifest(args: argparse.Namespace) -> None:
 
     for row in rows:
         source_id = row.get("source_id", "").strip()
-        text_raw_rel = row.get("local_path_text_raw", "").strip()
-        text_rel = row.get("local_path_text", "").strip()
+        include_in_signal_corpus = row.get("include_in_signal_corpus", "").strip().lower()
+        if include_in_signal_corpus not in {"true", "1", "yes", "y"}:
+            continue
+
+        text_raw_rel = row.get("raw_text_path", "").strip()
+        text_rel = row.get("clean_text_path", "").strip()
         if not source_id or not text_rel:
-            raise ValueError(f"Manifest row is missing source_id or local_path_text: {row}")
+            raise ValueError(f"Manifest row is missing source_id or clean_text_path: {row}")
         if not text_raw_rel:
-            text_raw_rel = f"text_raw/{source_id}.txt"
+            text_raw_rel = f"extractions/raw_text/{source_id}.txt"
 
         input_path = SOURCES_DIR / text_raw_rel
         output_path = SOURCES_DIR / text_rel

@@ -52,9 +52,9 @@ Implemented in `extract_exam_disciplines.py`:
 
 Implemented in `extract_disciplines_corpus_text.py` and `clean_disciplines_corpus_text.py`:
 
-- reads Planalto HTML rows from `sources/discipline_corpus_manifest.csv`
-- extracts raw canonical text blocks to each row's `local_path_text_raw`
-- cleans raw text into classification-oriented text at each row's `local_path_text`
+- reads source rows from `sources/manifests/source_documents.csv`
+- extracts raw canonical text blocks to each row's `raw_text_path`
+- cleans raw text into classification-oriented text at each row's `clean_text_path`
 - keeps raw extraction and classification cleanup as separate steps
 - uses LCP 95 as the reference for legal text structure
 - skips rows whose raw text does not exist yet, such as PDF-backed OAB sources
@@ -62,7 +62,8 @@ Implemented in `extract_disciplines_corpus_text.py` and `clean_disciplines_corpu
 
 Implemented in `extract_signals_candidates_disciplines.py`:
 
-- reads cleaned discipline corpus text from `sources/discipline_corpus_manifest.csv`
+- reads cleaned discipline corpus text from rows where `include_in_signal_corpus=true`
+  in `sources/manifests/source_documents.csv`
 - extracts candidate discipline signals from source titles, aliases, legal headings, article rubrics, definitions, enumerated terms, and repeated heading topic phrases
 - records source, discipline, hierarchy, article, and provenance metadata for each candidate
 - computes cross-source and cross-discipline counts by normalized candidate form
@@ -98,19 +99,16 @@ phase-1-editais/
   <official edital PDF for each exam 37 through 46>.pdf
 
 sources/
-  Provimento n. 144.2011.pdf
-  rces005_18.pdf
-  rces002_21.pdf
-  exame-de-ordem-em-numeros-IV.pdf
-  discipline_corpus_manifest.csv
-  taxonomy_sources.csv
-  raw/
-    <manifest source files>.html
-    <manifest source files>.pdf
-  text_raw/
-    <raw extracted Planalto text>.txt
-  text/
-    <cleaned classification text>.txt
+  manifests/
+    source_documents.csv
+  documents/
+    <immutable source files>.html
+    <immutable source files>.pdf
+  extractions/
+    raw_text/
+      <raw extracted source text>.txt
+    clean_text/
+      <cleaned classification text>.txt
 ```
 
 Each exam folder currently contains two PDFs: the prova and the answer key. Question extraction, answer extraction, and discipline-scope extraction are intentionally separate scripts and outputs.
@@ -219,7 +217,7 @@ Exam disciplines validated.
 Run the raw Planalto text extractor:
 
 ```bash
-python3 extract_disciplines_corpus_text.py --manifest --overwrite
+python3 extract_disciplines_corpus_text.py --manifest sources/manifests/source_documents.csv --overwrite
 ```
 
 Then run the classification text cleaner:
@@ -353,15 +351,15 @@ Columns:
 - `parse_ok`
 - `notes`
 
-`sources/text_raw/*.txt` contains raw canonical text extracted from Planalto HTML sources.
+`sources/extractions/raw_text/*.txt` contains raw canonical text extracted from source documents.
 
-`sources/text/*.txt` contains cleaned classification-oriented text derived from `sources/text_raw/*.txt`.
+`sources/extractions/clean_text/*.txt` contains cleaned classification-oriented text derived from `sources/extractions/raw_text/*.txt`.
 
 The source extractor is manifest-driven. For each row, it reads:
 
-- `local_path_raw`
-- `local_path_text_raw`
-- `local_path_text`
+- `original_path`
+- `raw_text_path`
+- `clean_text_path`
 
 Rows with missing raw text are reported and skipped by the cleaner. PDF-backed rows remain in the manifest, but are out of scope until raw text exists for them.
 
@@ -430,7 +428,7 @@ For the merge step, validation requires:
 
 For the exam-discipline extractor, validation requires:
 
-- local source PDFs exist under `sources/`
+- local source PDFs exist under `sources/documents/`
 - local edital PDFs exist under `phase-1-editais/`
 - the edital set is exactly exams 37 through 46
 - each edital's first-phase area text is found
@@ -478,5 +476,6 @@ Example future analyses:
 
 ## Token Usage
 
-- 70% left of 7 day limit resets jul 9
+- (70% left of 7 day limit) ~= 2,700,000 (AI estimate)
 - 93,798 + 114,716 + 91,759 + 63,004 = 363,277k
+- 152,672 + 35,147 + 133,482 + 91,711 = 413,012k
